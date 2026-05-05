@@ -171,7 +171,7 @@ footer span{color:var(--gold);}
     </div>
     <div class="header-text">
       <h1>Daily Report Parser</h1>
-      <p>Christ Consulate Global · v3.0</p>
+      <p>Christ Consulate Global · v3.1</p>
     </div>
     <div class="sync-dot" id="syncDot" title="Sheets sync status"></div>
   </div>
@@ -191,8 +191,12 @@ footer span{color:var(--gold);}
     <div class="card">
       <div class="card-label">Report details</div>
       <div class="field-row">
-        <div class="field"><label>Department</label><input id="m-dept" type="text" placeholder="e.g. Prayer &amp; Bible"/></div>
-        <div class="field"><label>Date</label><input id="m-date" type="date"/></div>
+        <div class="field"><label>Department</label><input id="m-dept" type="text" placeholder="e.g. Prayer &amp; Bible" oninput="onDateChange()"/></div>
+        <div class="field"><label>Date</label><input id="m-date" type="date" onchange="onDateChange()"/></div>
+      </div>
+      <div id="historyLoadedBadge" style="display:none;margin-top:10px;padding:8px 12px;background:var(--blue-bg);border:1px solid rgba(30,64,175,0.2);border-radius:var(--radius-sm);font-size:12px;color:var(--blue);">
+        📂 Loaded from history — editing this date's saved report
+      </div
       </div>
     </div>
     <div class="card">
@@ -755,6 +759,47 @@ function escAttr(s){return String(s).replace(/['"]/g,c=>c==='"'?'&quot;':"&#39;"
 function showToast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
 function showError(msg){const e=document.getElementById('errorBox');e.textContent=msg;e.style.display='block';}
 function hideError(){document.getElementById('errorBox').style.display='none';}
+
+
+/* ── Date-change: load history if exists ───── */
+function onDateChange(){
+  const dept = document.getElementById('m-dept').value.trim();
+  const ddate = document.getElementById('m-date').value;
+  if(!dept || !ddate) return;
+  const key = dept + '|' + ddate;
+  const h = getHistory();
+  const entry = h.find(e => e.key === key);
+  const badge = document.getElementById('historyLoadedBadge');
+  const resultSection = document.getElementById('resultSection');
+
+  if(entry){
+    // Hydrate manualData from history entry
+    manualData = {};
+    entry.rows.forEach(r => {
+      manualData[r.name] = {};
+      ACTIVITIES.forEach(a => { manualData[r.name][a] = !!(r[a]); });
+    });
+    badge.style.display = 'block';
+    // Re-render the grid with loaded values
+    renderManualGrid();
+    // Also show the result card pre-populated
+    const rows = entry.rows.map(r => ({
+      name: r.name,
+      ...Object.fromEntries(ACTIVITIES.map(a => [a, !!(r[a])]))
+    }));
+    renderResults(rows, dept, ddate, 'manual');
+    setSyncStrip('manual', entry.synced ? 'done' : 'idle');
+    resultSection.style.display = 'block';
+    showToast('📂 Loaded report for ' + new Date(ddate + 'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'}));
+  } else {
+    // No history for this date — clear everything
+    manualData = {};
+    members.forEach(m => { manualData[m] = {}; ACTIVITIES.forEach(a => { manualData[m][a] = false; }); });
+    badge.style.display = 'none';
+    resultSection.style.display = 'none';
+    renderManualGrid();
+  }
+}
 
 /* ── Init ────────────────────────────── */
 document.getElementById('m-date').valueAsDate=new Date();
