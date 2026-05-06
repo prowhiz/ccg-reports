@@ -832,3 +832,14 @@ footer span {
 }
 .btn-green:not(:disabled):hover  { background: #14532d; }
 .btn-green:not(:disabled):active { background: #14532d; }
+
+/* ── Add Members button ──────────────────────────────────────────────────── */
+#addMembersBtn button {
+  border-style: dashed;
+  color: var(--navy-light);
+}
+
+#addMembersBtn button:hover {
+  background: var(--cream);
+  border-style: solid;
+}

@@ -33,3 +33,8 @@
   from = "/api/history"
   to = "/.netlify/functions/history"
   status = 200
+
+[[redirects]]
+  from = "/api/addMember"
+  to = "/.netlify/functions/addMember"
+  status = 200

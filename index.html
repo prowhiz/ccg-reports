@@ -15,7 +15,7 @@
 <body>
 
   <!-- ══════════════════════════════════════════════════════
-       MODAL OVERLAY — passphrase registration & restore
+       MODAL OVERLAY
   ══════════════════════════════════════════════════════ -->
   <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; padding:20px;">
     <div style="background:var(--white); border-radius:var(--radius); width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
@@ -38,13 +38,12 @@
       </div>
       <div class="header-text">
         <h1>Daily Report Parser</h1>
-        <p>Christ Consulate Global · v4.0</p>
+        <p>Christ Consulate Global · v4.2</p>
       </div>
       <div class="sync-dot" id="syncDot" title="Sheets sync status"></div>
     </div>
     <div class="tabs">
-      <div class="tab active" onclick="switchTab('manual')">✏️ Manual</div>
-      <div class="tab" onclick="switchTab('paste')">📋 AI Paste</div>
+      <div class="tab active" onclick="switchTab('manual')">✏️ Entry</div>
       <div class="tab" onclick="switchTab('history')">🗂 History</div>
       <div class="tab" onclick="switchTab('settings')">⚙️ Setup</div>
     </div>
@@ -85,6 +84,11 @@
           <div class="act-header-name">Member</div>
           <div class="act-header-cols" id="actHeaderCols"></div>
         </div>
+        <div id="addMembersBtn" style="display:none; margin-bottom:10px;">
+          <button class="btn-secondary" style="width:100%; color:var(--navy); font-size:13px;" onclick="showAddMembersModal()">
+            ➕ Add New Members
+          </button>
+        </div>
         <div class="entry-grid" id="entryGrid"></div>
         <button class="btn-primary" id="generateBtn" onclick="generateFromManual()" style="display:none;">
           <span class="btn-label">Generate Report</span>
@@ -105,9 +109,9 @@
         <div class="tbl-scroll"><table id="m-resultTable"></table></div>
         <div class="sync-strip idle" id="m-syncStrip">☁️ Ready to sync to Google Sheets</div>
         <div class="action-row">
-          <button class="btn-secondary" onclick="copyWhatsApp('manual')">Copy for WhatsApp</button>
-          <button class="btn-secondary" onclick="copyCSV('manual')">Copy CSV</button>
-          <button class="btn-primary btn-green" id="m-syncBtn" onclick="syncToSheets('manual')" style="margin-top:10px;">
+          <button class="btn-secondary" onclick="copyWhatsApp()">Copy for WhatsApp</button>
+          <button class="btn-secondary" onclick="copyCSV()">Copy CSV</button>
+          <button class="btn-primary btn-green" id="m-syncBtn" onclick="syncToSheets()" style="margin-top:10px;">
             <div class="spinner"></div>
             <span class="btn-label">📤 Save to Google Sheets</span>
           </button>
@@ -120,69 +124,19 @@
     </div><!-- /pane-manual -->
 
     <!-- ══════════════════════════════════════════════════════
-         TAB 2 — AI PASTE
-    ══════════════════════════════════════════════════════ -->
-    <div class="tab-pane" id="pane-paste">
-
-      <div class="tip">Use this when the WhatsApp report arrives in a consistent format — AI extracts names and activities automatically.</div>
-
-      <div class="card">
-        <div class="card-label">Report details</div>
-        <div class="field-row">
-          <div class="field"><label>Department</label><input id="p-dept" type="text" placeholder="e.g. Prayer &amp; Bible" /></div>
-          <div class="field"><label>Date</label><input id="p-date" type="date" /></div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-label">Paste WhatsApp report</div>
-        <textarea id="raw" placeholder="Paste the full group chat report here…&#10;&#10;Bro Oscar: Midnight prayer ✅, Bible reading ✅&#10;Bro Prosper: Mid-day prayer ✅, Bible reading ✅&#10;Sis Eniola: Midnight prayer ✅&#10;Sis Sarah: ❌"></textarea>
-        <button class="btn-primary" id="parseBtn" onclick="runParse()">
-          <div class="spinner"></div>
-          <span class="btn-label">Parse with AI</span>
-        </button>
-        <div class="error-box" id="errorBox"></div>
-      </div>
-
-      <div class="card" id="resultSectionPaste" style="display:none;">
-        <div class="card-label">Result</div>
-        <div class="summary-bar">
-          <div class="stat"><div class="stat-num" id="p-statMembers">—</div><div class="stat-lbl">Members</div></div>
-          <div class="stat"><div class="stat-num" id="p-statPresent">—</div><div class="stat-lbl">Participated</div></div>
-          <div class="stat"><div class="stat-num" id="p-statRate">—</div><div class="stat-lbl">Avg Rate</div></div>
-        </div>
-        <div class="result-meta"><h2 id="p-resultTitle"></h2><p id="p-resultSub"></p></div>
-        <div class="tbl-scroll"><table id="p-resultTable"></table></div>
-        <div class="sync-strip idle" id="p-syncStrip">☁️ Ready to sync to Google Sheets</div>
-        <div class="action-row">
-          <button class="btn-secondary" onclick="copyWhatsApp('paste')">Copy for WhatsApp</button>
-          <button class="btn-secondary" onclick="copyCSV('paste')">Copy CSV</button>
-          <button class="btn-primary btn-green" id="p-syncBtn" onclick="syncToSheets('paste')" style="margin-top:10px;">
-            <div class="spinner"></div>
-            <span class="btn-label">📤 Save to Google Sheets</span>
-          </button>
-        </div>
-        <div style="margin-top:8px; text-align:right;">
-          <button class="btn-secondary" onclick="resetPaste()" style="color:var(--text-muted); font-size:12px; height:30px;">Clear</button>
-        </div>
-      </div>
-
-    </div><!-- /pane-paste -->
-
-    <!-- ══════════════════════════════════════════════════════
-         TAB 3 — HISTORY
+         TAB 2 — HISTORY
     ══════════════════════════════════════════════════════ -->
     <div class="tab-pane" id="pane-history">
+
       <div id="pendingBanner" class="pending-banner" style="display:none;">
         <p id="pendingMsg"></p>
         <button class="btn-retry-all" onclick="retryAllPending()">Retry All</button>
       </div>
 
-      <!-- Manual restore trigger -->
       <div class="card">
         <div class="card-label">Restore from Google Sheets</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          On a new device, or if local history was cleared, pull all past reports for your department back from Google Sheets.
+          On a new device or after clearing local history, pull all past reports for your department back from Google Sheets.
         </p>
         <button class="btn-primary btn-green" id="restoreHistoryBtn" onclick="restoreHistoryFromSheets()">
           <div class="spinner"></div>
@@ -191,10 +145,11 @@
       </div>
 
       <div id="historyList"></div>
-    </div>
+
+    </div><!-- /pane-history -->
 
     <!-- ══════════════════════════════════════════════════════
-         TAB 4 — SETUP
+         TAB 3 — SETUP
     ══════════════════════════════════════════════════════ -->
     <div class="tab-pane" id="pane-settings">
 
@@ -208,13 +163,15 @@
 
       <div class="card">
         <div class="card-label">Current session roster</div>
-        <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px; line-height:1.5;">
           Members are loaded automatically from Google Sheets when you type a registered department name.
-          Use the fields below as a fallback when offline.
         </p>
+        <div class="tip" style="margin-bottom:12px;">
+          ⚠️ Only add members manually as an offline fallback. Names must match the <strong>_Members</strong> sheet exactly to avoid broken history.
+        </div>
         <div class="roster-list" id="rosterList"></div>
         <div class="add-member-row">
-          <input id="newMemberInput" type="text" placeholder="Member name (e.g. Bro Oscar)"
+          <input id="newMemberInput" type="text" placeholder="Exact name from _Members sheet"
                  maxlength="50" onkeydown="if(event.key==='Enter') addMemberLocal()" />
           <button class="btn-add" onclick="addMemberLocal()">Add</button>
         </div>
@@ -231,7 +188,7 @@
       <div class="card">
         <div class="card-label">Data management</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          All reports are saved locally and synced to Google Sheets. Clearing local history does not affect data in Sheets.
+          All reports are saved locally and synced to Google Sheets. Clearing local history does not affect data already in Sheets.
         </p>
         <button class="btn-secondary" onclick="clearHistory()" style="color:var(--red); border-color:rgba(153,27,27,0.3);">
           Clear all local history
@@ -242,7 +199,7 @@
 
   </main>
 
-  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v4.0</footer>
+  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v4.2</footer>
   <div id="toast"></div>
   <script src="app.js"></script>
 
