@@ -843,3 +843,43 @@ footer span {
   background: var(--cream);
   border-style: solid;
 }
+
+/* ── Onboarding screen ───────────────────────────────────────────────────── */
+.onboarding-wrap {
+  max-width: 400px;
+  margin: 32px auto 0;
+  padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: fadeUp 0.4s ease both;
+}
+
+.onboarding-brand {
+  text-align: center;
+  padding: 24px 16px 8px;
+}
+
+.onboarding-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+}
+
+#onboardingActions {
+  flex-direction: column;
+  gap: 10px;
+}
+
+#onboardingActions .btn-primary:last-child {
+  background: transparent;
+  color: var(--navy);
+  border: 1px solid var(--border);
+  box-shadow: none;
+}
+
+#onboardingActions .btn-primary:last-child:active {
+  background: var(--cream);
+}

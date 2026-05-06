@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════════
-   CCG Daily Report Parser — app.js v4.4
+   CCG Daily Report Parser — app.js v4.5
    Manual entry only · Passphrase auth · History restore · Sheets sync
 ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -188,6 +188,7 @@ async function confirmRegistration(dept, passphrase, hash) {
     if (json.status === 'ok') {
       storeAuth(dept, hash);
       closeModal();
+      hideOnboarding();
       setRosterStatus('ok', `✅ "${esc(dept)}" registered. Members will appear after your first sync.`);
       showToast('Department registered!');
       members = [];
@@ -242,6 +243,7 @@ async function confirmRestore(dept) {
       storeAuth(dept, hash);
       members = json.members || [];
       closeModal();
+      hideOnboarding();
       showToast('✅ Access restored!');
       setRosterStatus('ok', `${members.length} members loaded from Google Sheets`);
       renderManualGrid();
@@ -430,6 +432,124 @@ async function submitNewMembers(dept) {
     document.getElementById('addMembersError').style.display = 'block';
     document.getElementById('addMembersError').textContent = 'Could not connect. Check your internet connection.';
   }
+}
+
+/* ── Onboarding screen ───────────────────────────────────────────────────── */
+
+/**
+ * Shows the welcome/onboarding screen inside the Manual tab pane.
+ * Rendered when the app has no stored auth — brand new install or after reset.
+ * Dismissed by hideOnboarding() once registration or restore completes.
+ */
+function showOnboarding() {
+  // Ensure we're on the Manual tab
+  switchTab('manual');
+
+  // Hide the normal entry UI
+  document.getElementById('pane-manual').style.display = 'none';
+
+  // Render onboarding screen in its place
+  let screen = document.getElementById('onboardingScreen');
+  if (!screen) {
+    screen = document.createElement('div');
+    screen.id = 'onboardingScreen';
+    document.querySelector('main').prepend(screen);
+  }
+
+  screen.style.display = 'block';
+  screen.innerHTML = `
+    <div class="onboarding-wrap">
+
+      <!-- Branding -->
+      <div class="onboarding-brand">
+        <div class="cross-badge" style="width:52px;height:52px;border-radius:14px;margin:0 auto 14px;">
+          <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:white;">
+            <path d="M11 2h2v7h7v2h-7v11h-2V11H4V9h7z"/>
+          </svg>
+        </div>
+        <h1 style="font-family:'Playfair Display',serif;font-size:22px;font-weight:700;
+                   color:var(--navy);margin-bottom:6px;">Daily Report Parser</h1>
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.5;">
+          Christ Consulate Global
+        </p>
+      </div>
+
+      <!-- Explainer -->
+      <div class="onboarding-card">
+        <p style="font-size:13px;color:var(--text-muted);line-height:1.7;text-align:center;">
+          Welcome. To get started, enter your department name below
+          then either <strong>register</strong> it as new or
+          <strong>restore</strong> an existing one using your saved passphrase.
+        </p>
+      </div>
+
+      <!-- Department input -->
+      <div class="onboarding-card">
+        <div class="field">
+          <label style="font-size:12px;font-weight:500;color:var(--text-muted);
+                        letter-spacing:0.05em;text-transform:uppercase;display:block;margin-bottom:6px;">
+            Department name
+          </label>
+          <input id="onboardDept" type="text"
+                 placeholder="e.g. Prayer &amp; Bible"
+                 style="width:100%;height:46px;border:1px solid var(--border);
+                        border-radius:var(--radius-sm);padding:0 14px;font-size:15px;
+                        font-family:'DM Sans',sans-serif;background:var(--cream);
+                        color:var(--text);"
+                 oninput="toggleOnboardingBtns()" />
+        </div>
+      </div>
+
+      <!-- Action buttons -->
+      <div id="onboardingActions" style="display:none;display:flex;flex-direction:column;gap:10px;">
+        <button class="btn-primary" onclick="onboardRegister()"
+                style="background:var(--navy);">
+          <span class="btn-label">🔑 Register new department</span>
+        </button>
+        <button class="btn-primary" onclick="onboardRestore()"
+                style="background:transparent;color:var(--navy);
+                       border:1px solid var(--border);box-shadow:none;">
+          <span class="btn-label">🔓 Restore with passphrase</span>
+        </button>
+      </div>
+
+      <p style="font-size:11px;color:var(--text-light);text-align:center;margin-top:20px;line-height:1.6;">
+        First time? Register your department to generate a secure passphrase.<br>
+        Returning on a new device? Restore using your saved passphrase.
+      </p>
+
+    </div>`;
+
+  // Show/hide action buttons as dept is typed
+  toggleOnboardingBtns();
+}
+
+function toggleOnboardingBtns() {
+  const val     = (document.getElementById('onboardDept')?.value || '').trim();
+  const actions = document.getElementById('onboardingActions');
+  if (actions) actions.style.display = val.length > 0 ? 'flex' : 'none';
+}
+
+function onboardRegister() {
+  const dept = (document.getElementById('onboardDept')?.value || '').trim();
+  if (!dept) return;
+  // Copy dept into the main input so startRegistration() picks it up
+  document.getElementById('m-dept').value = dept;
+  startRegistration();
+}
+
+function onboardRestore() {
+  const dept = (document.getElementById('onboardDept')?.value || '').trim();
+  if (!dept) return;
+  document.getElementById('m-dept').value = dept;
+  startRestore();
+}
+
+/** Call this after successful registration or restore to dismiss onboarding */
+function hideOnboarding() {
+  const screen = document.getElementById('onboardingScreen');
+  if (screen) screen.style.display = 'none';
+  document.getElementById('pane-manual').style.display = 'block';
 }
 
 /* ── Modal helpers ───────────────────────────────────────────────────────── */
@@ -844,7 +964,8 @@ function clearHistory() {
   renderSetupRoster();
   renderHistory();
 
-  showToast('App reset — register or restore a department to continue');
+  // Show onboarding immediately — no waiting for user to figure out next step
+  showOnboarding();
 }
 
 /* ── Copy helpers ────────────────────────────────────────────────────────── */
@@ -893,5 +1014,15 @@ renderSetupRoster();
 renderManualGrid();
 renderActivityList();
 renderPendingBanner();
+
+// Check if any department is registered on this device
 const _initDept = getCurrentDept();
-if (_initDept) initDept(_initDept);
+const _hasAuth  = _initDept && (ls('ccg_auth') || {})[_initDept.toLowerCase()];
+
+if (_initDept && _hasAuth) {
+  // Returning user — fetch roster and continue normally
+  initDept(_initDept);
+} else {
+  // Brand new install or post-reset — show onboarding
+  showOnboarding();
+}
