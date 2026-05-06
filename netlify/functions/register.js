@@ -12,39 +12,17 @@ exports.handler = async function (event) {
   try { payload = JSON.parse(event.body); }
   catch { return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid JSON' }) }; }
 
-  const { department, date, hash, rows } = payload;
+  const { department, hash } = payload;
 
   if (!department || typeof department !== 'string' || department.length > 100) {
     return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid department' }) };
   }
-  if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid date format' }) };
-  }
   if (!hash || typeof hash !== 'string' || hash.length !== 64) {
-    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Unauthorized' }) };
-  }
-  if (!Array.isArray(rows) || rows.length === 0 || rows.length > 50) {
-    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid rows' }) };
-  }
-
-  const ALLOWED_ACTIVITIES = ['Midnight Prayer', 'Mid-day Prayer', 'Bible Reading', 'Reflection', 'Confessions', 'Word Tape'];
-  for (const row of rows) {
-    if (!row.name || typeof row.name !== 'string' || row.name.length > 100) {
-      return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid member name' }) };
-    }
-    for (const act of ALLOWED_ACTIVITIES) {
-      if (typeof row[act] !== 'boolean') {
-        return { statusCode: 400, body: JSON.stringify({ status: 'error', message: `Invalid value for: ${act}` }) };
-      }
-    }
+    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid hash' }) };
   }
 
   try {
-    const res  = await fetch(SHEETS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ department, date, hash, rows }),
-    });
+    const res  = await fetch(`${SHEETS_URL}?action=register&department=${encodeURIComponent(department)}&hash=${encodeURIComponent(hash)}`, { method: 'GET' });
     const text = await res.text();
     let result;
     try { result = JSON.parse(text); } catch { result = { status: 'error', message: text }; }

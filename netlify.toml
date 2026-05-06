@@ -23,3 +23,13 @@
   from = "/api/members"
   to = "/.netlify/functions/members"
   status = 200
+
+[[redirects]]
+  from = "/api/register"
+  to = "/.netlify/functions/register"
+  status = 200
+
+[[redirects]]
+  from = "/api/history"
+  to = "/.netlify/functions/history"
+  status = 200

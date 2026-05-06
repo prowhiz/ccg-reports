@@ -15,18 +15,18 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid department' }) };
   }
   if (!hash || hash.length !== 64) {
-    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid hash — is the department registered?' }) };
+    return { statusCode: 400, body: JSON.stringify({ status: 'error', message: 'Invalid hash' }) };
   }
 
   try {
-    const url  = `${SHEETS_URL}?action=getMembers&department=${encodeURIComponent(department)}&hash=${encodeURIComponent(hash)}`;
+    const url  = `${SHEETS_URL}?action=getHistory&department=${encodeURIComponent(department)}&hash=${encodeURIComponent(hash)}`;
     const res  = await fetch(url);
     const text = await res.text();
     let result;
     try { result = JSON.parse(text); } catch { result = { status: 'error', message: 'Invalid response from Google Sheets' }; }
     return {
       statusCode: 200,
-      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60' },
+      headers: { 'Access-Control-Allow-Origin': '*', 'Content-Type': 'application/json' },
       body: JSON.stringify(result),
     };
   } catch (err) {

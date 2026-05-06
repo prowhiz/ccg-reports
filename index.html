@@ -15,6 +15,20 @@
 <body>
 
   <!-- ══════════════════════════════════════════════════════
+       MODAL OVERLAY — passphrase registration & restore
+  ══════════════════════════════════════════════════════ -->
+  <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; padding:20px;">
+    <div style="background:var(--white); border-radius:var(--radius); width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
+      <div style="background:var(--navy); padding:16px 20px; display:flex; align-items:center; justify-content:space-between;">
+        <h2 id="modalTitle" style="font-family:'Playfair Display',serif; font-size:16px; color:var(--white); font-weight:500;"></h2>
+        <button onclick="closeModal()" style="background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+      </div>
+      <div id="modalBody" style="padding:20px;"></div>
+      <div id="modalActions" style="padding:0 20px 20px; display:flex; gap:10px; justify-content:flex-end;"></div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════
        HEADER
   ══════════════════════════════════════════════════════ -->
   <header>
@@ -24,7 +38,7 @@
       </div>
       <div class="header-text">
         <h1>Daily Report Parser</h1>
-        <p>Christ Consulate Global · v3.2</p>
+        <p>Christ Consulate Global · v4.0</p>
       </div>
       <div class="sync-dot" id="syncDot" title="Sheets sync status"></div>
     </div>
@@ -44,7 +58,6 @@
     ══════════════════════════════════════════════════════ -->
     <div class="tab-pane active" id="pane-manual">
 
-      <!-- Report details -->
       <div class="card">
         <div class="card-label">Report details</div>
         <div class="field-row">
@@ -63,11 +76,10 @@
         </div>
       </div>
 
-      <!-- Participation grid -->
       <div class="card">
         <div class="card-label">Participation — tap to mark ✅</div>
         <div id="noMembersHint" class="tip" style="display:none;">
-          No members yet. Go to <strong>Setup</strong> to add your department's members first.
+          Enter your department name above to get started.
         </div>
         <div class="act-header" id="actHeader" style="display:none;">
           <div class="act-header-name">Member</div>
@@ -79,30 +91,18 @@
         </button>
       </div>
 
-      <!-- Result -->
       <div class="card" id="resultSection" style="display:none;">
         <div class="card-label">Result</div>
         <div class="summary-bar">
-          <div class="stat">
-            <div class="stat-num" id="m-statMembers">—</div>
-            <div class="stat-lbl">Members</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" id="m-statPresent">—</div>
-            <div class="stat-lbl">Participated</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" id="m-statRate">—</div>
-            <div class="stat-lbl">Avg Rate</div>
-          </div>
+          <div class="stat"><div class="stat-num" id="m-statMembers">—</div><div class="stat-lbl">Members</div></div>
+          <div class="stat"><div class="stat-num" id="m-statPresent">—</div><div class="stat-lbl">Participated</div></div>
+          <div class="stat"><div class="stat-num" id="m-statRate">—</div><div class="stat-lbl">Avg Rate</div></div>
         </div>
         <div class="result-meta">
           <h2 id="m-resultTitle"></h2>
           <p id="m-resultSub"></p>
         </div>
-        <div class="tbl-scroll">
-          <table id="m-resultTable"></table>
-        </div>
+        <div class="tbl-scroll"><table id="m-resultTable"></table></div>
         <div class="sync-strip idle" id="m-syncStrip">☁️ Ready to sync to Google Sheets</div>
         <div class="action-row">
           <button class="btn-secondary" onclick="copyWhatsApp('manual')">Copy for WhatsApp</button>
@@ -124,21 +124,13 @@
     ══════════════════════════════════════════════════════ -->
     <div class="tab-pane" id="pane-paste">
 
-      <div class="tip">
-        Use this when the WhatsApp report arrives in a consistent format — AI extracts names and activities automatically.
-      </div>
+      <div class="tip">Use this when the WhatsApp report arrives in a consistent format — AI extracts names and activities automatically.</div>
 
       <div class="card">
         <div class="card-label">Report details</div>
         <div class="field-row">
-          <div class="field">
-            <label>Department</label>
-            <input id="p-dept" type="text" placeholder="e.g. Prayer &amp; Bible" />
-          </div>
-          <div class="field">
-            <label>Date</label>
-            <input id="p-date" type="date" />
-          </div>
+          <div class="field"><label>Department</label><input id="p-dept" type="text" placeholder="e.g. Prayer &amp; Bible" /></div>
+          <div class="field"><label>Date</label><input id="p-date" type="date" /></div>
         </div>
       </div>
 
@@ -155,26 +147,12 @@
       <div class="card" id="resultSectionPaste" style="display:none;">
         <div class="card-label">Result</div>
         <div class="summary-bar">
-          <div class="stat">
-            <div class="stat-num" id="p-statMembers">—</div>
-            <div class="stat-lbl">Members</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" id="p-statPresent">—</div>
-            <div class="stat-lbl">Participated</div>
-          </div>
-          <div class="stat">
-            <div class="stat-num" id="p-statRate">—</div>
-            <div class="stat-lbl">Avg Rate</div>
-          </div>
+          <div class="stat"><div class="stat-num" id="p-statMembers">—</div><div class="stat-lbl">Members</div></div>
+          <div class="stat"><div class="stat-num" id="p-statPresent">—</div><div class="stat-lbl">Participated</div></div>
+          <div class="stat"><div class="stat-num" id="p-statRate">—</div><div class="stat-lbl">Avg Rate</div></div>
         </div>
-        <div class="result-meta">
-          <h2 id="p-resultTitle"></h2>
-          <p id="p-resultSub"></p>
-        </div>
-        <div class="tbl-scroll">
-          <table id="p-resultTable"></table>
-        </div>
+        <div class="result-meta"><h2 id="p-resultTitle"></h2><p id="p-resultSub"></p></div>
+        <div class="tbl-scroll"><table id="p-resultTable"></table></div>
         <div class="sync-strip idle" id="p-syncStrip">☁️ Ready to sync to Google Sheets</div>
         <div class="action-row">
           <button class="btn-secondary" onclick="copyWhatsApp('paste')">Copy for WhatsApp</button>
@@ -199,6 +177,19 @@
         <p id="pendingMsg"></p>
         <button class="btn-retry-all" onclick="retryAllPending()">Retry All</button>
       </div>
+
+      <!-- Manual restore trigger -->
+      <div class="card">
+        <div class="card-label">Restore from Google Sheets</div>
+        <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
+          On a new device, or if local history was cleared, pull all past reports for your department back from Google Sheets.
+        </p>
+        <button class="btn-primary btn-green" id="restoreHistoryBtn" onclick="restoreHistoryFromSheets()">
+          <div class="spinner"></div>
+          <span class="btn-label">☁️ Restore history from Google Sheets</span>
+        </button>
+      </div>
+
       <div id="historyList"></div>
     </div>
 
@@ -216,9 +207,10 @@
       </div>
 
       <div class="card">
-        <div class="card-label">Department members</div>
+        <div class="card-label">Current session roster</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          Members are loaded automatically from Google Sheets when you type a department name. Use this as a fallback when offline, or to preview the current session roster.
+          Members are loaded automatically from Google Sheets when you type a registered department name.
+          Use the fields below as a fallback when offline.
         </p>
         <div class="roster-list" id="rosterList"></div>
         <div class="add-member-row">
@@ -239,10 +231,9 @@
       <div class="card">
         <div class="card-label">Data management</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          All reports are saved locally on this device and synced to Google Sheets when you tap "Save to Google Sheets".
+          All reports are saved locally and synced to Google Sheets. Clearing local history does not affect data in Sheets.
         </p>
-        <button class="btn-secondary" onclick="clearHistory()"
-                style="color:var(--red); border-color:rgba(153,27,27,0.3);">
+        <button class="btn-secondary" onclick="clearHistory()" style="color:var(--red); border-color:rgba(153,27,27,0.3);">
           Clear all local history
         </button>
       </div>
@@ -251,9 +242,8 @@
 
   </main>
 
-  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v3.2</footer>
+  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v4.0</footer>
   <div id="toast"></div>
-
   <script src="app.js"></script>
 
 </body>

@@ -781,3 +781,54 @@ footer {
 footer span {
   color:var(--gold);
 }
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+.passphrase-display {
+  background: var(--navy);
+  color: var(--gold-light, #fef3c7);
+  font-family: 'DM Mono', 'Courier New', monospace;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 16px 20px;
+  border-radius: var(--radius-sm);
+  word-break: break-all;
+  line-height: 1.5;
+  user-select: all;
+}
+
+.confirm-check input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--navy);
+  cursor: pointer;
+}
+
+.inline-btn {
+  background: none;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.inline-btn:hover  { background: rgba(0,0,0,0.06); }
+.inline-btn:active { background: rgba(0,0,0,0.12); }
+
+.inline-btn--blue {
+  color: var(--blue);
+}
+
+/* ── Restore history button ──────────────────────────────────────────────── */
+.btn-green {
+  background: var(--green);
+}
+.btn-green:not(:disabled):hover  { background: #14532d; }
+.btn-green:not(:disabled):active { background: #14532d; }
