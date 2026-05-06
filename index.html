@@ -24,7 +24,7 @@
       </div>
       <div class="header-text">
         <h1>Daily Report Parser</h1>
-        <p>Christ Consulate Global · v3.1</p>
+        <p>Christ Consulate Global · v3.2</p>
       </div>
       <div class="sync-dot" id="syncDot" title="Sheets sync status"></div>
     </div>
@@ -50,13 +50,14 @@
         <div class="field-row">
           <div class="field">
             <label>Department</label>
-            <input id="m-dept" type="text" placeholder="e.g. Prayer &amp; Bible" oninput="onDateChange()" />
+            <input id="m-dept" type="text" placeholder="e.g. Prayer &amp; Bible" oninput="onDeptInput()" />
           </div>
           <div class="field">
             <label>Date</label>
             <input id="m-date" type="date" onchange="onDateChange()" />
           </div>
         </div>
+        <div id="rosterStatus" style="display:none;"></div>
         <div id="historyLoadedBadge" style="display:none; margin-top:10px; padding:8px 12px; background:var(--blue-bg); border:1px solid rgba(30,64,175,0.2); border-radius:var(--radius-sm); font-size:12px; color:var(--blue);">
           📂 Loaded from history — editing this date's saved report
         </div>
@@ -217,13 +218,13 @@
       <div class="card">
         <div class="card-label">Department members</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          Add every member once — they appear in Manual Entry every day.
+          Members are loaded automatically from Google Sheets when you type a department name. Use this as a fallback when offline, or to preview the current session roster.
         </p>
         <div class="roster-list" id="rosterList"></div>
         <div class="add-member-row">
           <input id="newMemberInput" type="text" placeholder="Member name (e.g. Bro Oscar)"
-                 maxlength="50" onkeydown="if(event.key==='Enter') addMember()" />
-          <button class="btn-add" onclick="addMember()">Add</button>
+                 maxlength="50" onkeydown="if(event.key==='Enter') addMemberLocal()" />
+          <button class="btn-add" onclick="addMemberLocal()">Add</button>
         </div>
       </div>
 
@@ -250,7 +251,7 @@
 
   </main>
 
-  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v3.1</footer>
+  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v3.2</footer>
   <div id="toast"></div>
 
   <script src="app.js"></script>

@@ -1,0 +1,20 @@
+{
+	"dbConnectionString": "postgres://localhost:11007/postgres",
+	"geolocation": {
+		"data": {
+			"city": "Ras al-Khaimah",
+			"country": {
+				"code": "AE",
+				"name": "United Arab Emirates"
+			},
+			"subdivision": {
+				"code": "RK",
+				"name": "Emirate of Ras Al Khaimah"
+			},
+			"timezone": "Asia/Dubai",
+			"latitude": 25.7935,
+			"longitude": 55.944
+		},
+		"timestamp": 1778013267629
+	}
+}
