@@ -38,7 +38,7 @@
       </div>
       <div class="header-text">
         <h1>Daily Report Parser</h1>
-        <p>Christ Consulate Global · v4.3</p>
+        <p>Christ Consulate Global · v4.4</p>
       </div>
       <div class="sync-dot" id="syncDot" title="Sheets sync status"></div>
     </div>
@@ -146,16 +146,17 @@
 
       <div id="historyList"></div>
 
-      <!-- Reset local cache -->
+      <!-- Reset to fresh install -->
       <div class="card" style="margin-top:14px;">
-        <div class="card-label">Reset local cache</div>
+        <div class="card-label">Reset device</div>
         <p style="font-size:13px; color:var(--text-muted); margin-bottom:12px; line-height:1.5;">
-          Clears all history from this device only. Your data in Google Sheets is untouched —
-          use "Restore from Google Sheets" above to reload it.
+          Removes all local data from this device — history, passphrase, and department settings.
+          Your data in Google Sheets is completely untouched.
+          After resetting, register or restore your department to continue.
         </p>
         <button class="btn-secondary" onclick="clearHistory()"
                 style="color:var(--red); border-color:rgba(153,27,27,0.3);">
-          Reset local cache
+          Reset to fresh install
         </button>
       </div>
 
@@ -202,7 +203,7 @@
 
   </main>
 
-  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v4.3</footer>
+  <footer>Built for <span>Christ Consulate Global</span> · Report Parser v4.4</footer>
   <div id="toast"></div>
   <script src="app.js"></script>
 

@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════════
-   CCG Daily Report Parser — app.js v4.3
+   CCG Daily Report Parser — app.js v4.4
    Manual entry only · Passphrase auth · History restore · Sheets sync
 ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -807,35 +807,44 @@ async function reSync(i) {
 
 function clearHistory() {
   if (!confirm(
-    'Reset local cache?\n\n' +
-    'This clears history from this device only. ' +
-    'Your data in Google Sheets is untouched — ' +
-    'tap "Restore from Google Sheets" to reload it.'
+    'Reset to fresh install?\n\n' +
+    'This removes all local data from this device — history, ' +
+    'passphrase, and department settings.\n\n' +
+    'Your data in Google Sheets is completely untouched. ' +
+    'Use "Restore from Google Sheets" after re-registering to reload it.'
   )) return;
 
-  // Clear localStorage
-  saveHistory([]);
-  savePending([]);
+  // Wipe all localStorage keys used by this app
+  localStorage.removeItem('ccg_history');
+  localStorage.removeItem('ccg_pending');
+  localStorage.removeItem('ccg_auth');
+  localStorage.removeItem('ccg_defaultDept');
+  localStorage.removeItem('ccg_members'); // legacy key — safe to remove
 
-  // Reset in-memory state
+  // Reset all in-memory state
   members    = [];
   manualData = {};
 
-  // Reset UI — result card, badges, status
-  document.getElementById('resultSection').style.display       = 'none';
-  document.getElementById('historyLoadedBadge').style.display  = 'none';
+  // Clear all input fields so nothing persists on screen
+  document.getElementById('m-dept').value    = '';
+  document.getElementById('m-date').valueAsDate = new Date();
+  document.getElementById('defaultDept').value = '';
+
+  // Hide all result / status UI
+  document.getElementById('resultSection').style.display      = 'none';
+  document.getElementById('historyLoadedBadge').style.display = 'none';
   const rs = document.getElementById('rosterStatus');
   if (rs) rs.style.display = 'none';
 
   // Reset sync dot
   setDot('');
 
-  // Re-render affected UI
+  // Re-render all affected UI — everything should now appear empty
   renderManualGrid();
   renderSetupRoster();
   renderHistory();
 
-  showToast('Local cache cleared');
+  showToast('App reset — register or restore a department to continue');
 }
 
 /* ── Copy helpers ────────────────────────────────────────────────────────── */
