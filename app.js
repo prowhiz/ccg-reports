@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════════════════════
-   CCG Daily Report Parser — app.js v4.2
+   CCG Daily Report Parser — app.js v4.3
    Manual entry only · Passphrase auth · History restore · Sheets sync
 ══════════════════════════════════════════════════════════════════════════════ */
 
@@ -806,8 +806,36 @@ async function reSync(i) {
 }
 
 function clearHistory() {
-  if (!confirm('Clear all local history? This does not affect data already synced to Google Sheets.')) return;
-  saveHistory([]); savePending([]); renderHistory(); showToast('Local history cleared');
+  if (!confirm(
+    'Reset local cache?\n\n' +
+    'This clears history from this device only. ' +
+    'Your data in Google Sheets is untouched — ' +
+    'tap "Restore from Google Sheets" to reload it.'
+  )) return;
+
+  // Clear localStorage
+  saveHistory([]);
+  savePending([]);
+
+  // Reset in-memory state
+  members    = [];
+  manualData = {};
+
+  // Reset UI — result card, badges, status
+  document.getElementById('resultSection').style.display       = 'none';
+  document.getElementById('historyLoadedBadge').style.display  = 'none';
+  const rs = document.getElementById('rosterStatus');
+  if (rs) rs.style.display = 'none';
+
+  // Reset sync dot
+  setDot('');
+
+  // Re-render affected UI
+  renderManualGrid();
+  renderSetupRoster();
+  renderHistory();
+
+  showToast('Local cache cleared');
 }
 
 /* ── Copy helpers ────────────────────────────────────────────────────────── */
