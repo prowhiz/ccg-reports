@@ -1,5 +1,5 @@
 {
-	"dbConnectionString": "postgres://localhost:8179/postgres",
+	"dbConnectionString": "postgres://localhost:8584/postgres",
 	"geolocation": {
 		"data": {
 			"city": "Ras al-Khaimah",
@@ -15,6 +15,6 @@
 			"latitude": 25.7935,
 			"longitude": 55.944
 		},
-		"timestamp": 1778013267629
+		"timestamp": 1778099871274
 	}
 }

@@ -293,14 +293,8 @@ async function fetchMembersForDept(dept, hash) {
 function setRosterStatus(type, html) {
   const el = document.getElementById('rosterStatus');
   if (!el) return;
-  const styles = {
-    loading : { bg:'var(--amber-bg)', co:'var(--amber)',  bo:'rgba(146,64,14,0.2)' },
-    ok      : { bg:'var(--green-bg)', co:'var(--green)',  bo:'rgba(22,101,52,0.2)' },
-    warn    : { bg:'var(--amber-bg)', co:'var(--amber)',  bo:'rgba(146,64,14,0.2)' },
-    error   : { bg:'var(--red-bg)',   co:'var(--red)',    bo:'rgba(153,27,27,0.2)' },
-  };
-  const s = styles[type] || styles.warn;
-  el.style.cssText = `display:block;margin-top:10px;padding:8px 12px;border:1px solid ${s.bo};border-radius:var(--radius-sm);font-size:12px;line-height:1.6;background:${s.bg};color:${s.co};`;
+  el.className = 'roster-status roster-status--' + type;
+  el.style.display = 'block';
   el.innerHTML = html;
 }
 
@@ -435,32 +429,21 @@ async function submitNewMembers(dept) {
 }
 
 /* ── Onboarding screen ───────────────────────────────────────────────────── */
-
-/**
- * Shows the welcome/onboarding screen inside the Manual tab pane.
- * Rendered when the app has no stored auth — brand new install or after reset.
- * Dismissed by hideOnboarding() once registration or restore completes.
- */
 function showOnboarding() {
-  // Ensure we're on the Manual tab
   switchTab('manual');
+  document.getElementById('entryCards').style.display = 'none';
 
-  // Hide the normal entry UI
-  document.getElementById('pane-manual').style.display = 'none';
-
-  // Render onboarding screen in its place
   let screen = document.getElementById('onboardingScreen');
   if (!screen) {
     screen = document.createElement('div');
     screen.id = 'onboardingScreen';
-    document.querySelector('main').prepend(screen);
+    document.getElementById('pane-manual').prepend(screen);
   }
 
   screen.style.display = 'block';
   screen.innerHTML = `
     <div class="onboarding-wrap">
 
-      <!-- Branding -->
       <div class="onboarding-brand">
         <div class="cross-badge" style="width:52px;height:52px;border-radius:14px;margin:0 auto 14px;">
           <svg viewBox="0 0 24 24" style="width:28px;height:28px;fill:white;">
@@ -474,7 +457,6 @@ function showOnboarding() {
         </p>
       </div>
 
-      <!-- Explainer -->
       <div class="onboarding-card">
         <p style="font-size:13px;color:var(--text-muted);line-height:1.7;text-align:center;">
           Welcome. To get started, enter your department name below
@@ -483,7 +465,6 @@ function showOnboarding() {
         </p>
       </div>
 
-      <!-- Department input -->
       <div class="onboarding-card">
         <div class="field">
           <label style="font-size:12px;font-weight:500;color:var(--text-muted);
@@ -500,8 +481,7 @@ function showOnboarding() {
         </div>
       </div>
 
-      <!-- Action buttons -->
-      <div id="onboardingActions" style="display:none;display:flex;flex-direction:column;gap:10px;">
+      <div id="onboardingActions" style="display:none;">
         <button class="btn-primary" onclick="onboardRegister()"
                 style="background:var(--navy);">
           <span class="btn-label">🔑 Register new department</span>
@@ -520,7 +500,6 @@ function showOnboarding() {
 
     </div>`;
 
-  // Show/hide action buttons as dept is typed
   toggleOnboardingBtns();
 }
 
@@ -545,11 +524,10 @@ function onboardRestore() {
   startRestore();
 }
 
-/** Call this after successful registration or restore to dismiss onboarding */
 function hideOnboarding() {
   const screen = document.getElementById('onboardingScreen');
   if (screen) screen.style.display = 'none';
-  document.getElementById('pane-manual').style.display = 'block';
+  document.getElementById('entryCards').style.display = '';
 }
 
 /* ── Modal helpers ───────────────────────────────────────────────────────── */
@@ -582,10 +560,9 @@ function renderSetupRoster() {
     list.innerHTML = '<p style="font-size:13px;color:var(--text-light);padding:6px 0;">No members loaded. Type a registered department name in the Manual tab.</p>';
     return;
   }
-  list.innerHTML = members.map((m, i) => `
+  list.innerHTML = members.map(m => `
     <div class="roster-item">
       <span>${esc(m)}</span>
-      <button onclick="removeMemberLocal(${i})" title="Remove from local session">✕</button>
     </div>`).join('');
 }
 
@@ -597,25 +574,15 @@ function renderActivityList() {
     </div>`).join('');
 }
 
-function addMemberLocal() {
-  const inp  = document.getElementById('newMemberInput');
-  const name = inp.value.trim();
-  if (!name) return;
-  if (members.map(m => m.toLowerCase()).includes(name.toLowerCase())) { showToast('Already in roster'); return; }
-  members.push(name);
-  inp.value = '';
-  renderSetupRoster();
-  renderManualGrid();
-  showToast(`${name} added — ensure this name exactly matches the _Members sheet`);
-}
-
-function removeMemberLocal(i) {
-  members.splice(i, 1);
-  renderSetupRoster();
-  renderManualGrid();
-}
 
 /* ── Manual entry grid ───────────────────────────────────────────────────── */
+function buildRows() {
+  return members.map(m => ({
+    name: m,
+    ...Object.fromEntries(ACTIVITIES.map(a => [a, manualData[m]?.[a] || false]))
+  }));
+}
+
 function renderManualGrid() {
   const grid = document.getElementById('entryGrid');
   const hint = document.getElementById('noMembersHint');
@@ -635,7 +602,7 @@ function renderManualGrid() {
   if (addBtn) addBtn.style.display = 'flex';
 
   document.getElementById('actHeaderCols').innerHTML = ACT_ICONS.map((ic, i) =>
-    `<div class="act-col-lbl">${ic}<br>${ACT_SHORT[i]}</div>`).join('');
+    `<div class="act-header__col">${ic}<br>${ACT_SHORT[i]}</div>`).join('');
 
   members.forEach(m => {
     if (!manualData[m]) manualData[m] = {};
@@ -679,7 +646,7 @@ function markAbsent(member) {
 function generateFromManual() {
   const dept  = getCurrentDept() || 'Department';
   const ddate = document.getElementById('m-date').value || today();
-  const rows  = members.map(m => ({ name: m, ...Object.fromEntries(ACTIVITIES.map(a => [a, manualData[m]?.[a] || false])) }));
+  const rows  = buildRows();
   renderResults(rows, dept, ddate);
   setSyncStrip('idle');
   document.getElementById('resultSection').style.display = 'block';
@@ -747,7 +714,7 @@ function renderResults(rows, dept, ddate) {
   html += '<th>Score</th></tr></thead><tbody>';
   rows.forEach(r => {
     const score = ACTIVITIES.filter(a => r[a]).length;
-    const cls   = score >= 4 ? 'score-high' : score >= 2 ? 'score-mid' : 'score-low';
+    const cls   = score >= 4 ? 'score-pill--high' : score >= 2 ? 'score-pill--mid' : 'score-pill--low';
     html += `<tr><td class="name-cell">${esc(r.name)}</td>`;
     ACTIVITIES.forEach(a => { html += r[a] ? '<td><span class="check">✅</span></td>' : '<td><span class="cross-icon">✕</span></td>'; });
     html += `<td><span class="score-pill ${cls}">${score}/6</span></td></tr>`;
@@ -761,7 +728,7 @@ async function syncToSheets() {
   const dept  = getCurrentDept();
   const ddate = document.getElementById('m-date').value || today();
   const hash  = getStoredHash();
-  const rows  = members.map(m => ({ name: m, ...Object.fromEntries(ACTIVITIES.map(a => [a, manualData[m]?.[a] || false])) }));
+  const rows  = buildRows();
 
   if (!rows.length) { showToast('No data to sync'); return; }
   if (!hash)        { showToast('Register this department first'); return; }
@@ -799,7 +766,7 @@ async function syncToSheets() {
 
 function setSyncStrip(state) {
   const el   = document.getElementById('m-syncStrip');
-  el.className = 'sync-strip ' + state;
+  el.className = 'sync-strip sync-strip--' + state;
   const msgs = {
     idle   : '☁️ Ready to sync to Google Sheets',
     syncing: '⏳ Syncing…',
@@ -835,21 +802,26 @@ function addToPending(payload) {
 async function retryAllPending() {
   const p = getPending();
   if (!p.length) return;
-  let succeeded = 0;
+  const succeededKeys = new Set();
   for (const payload of p) {
     try {
       const res  = await fetch(API.sync, { method: 'POST', body: JSON.stringify(payload) });
       const json = await res.json();
       if (json.status === 'ok') {
-        succeeded++;
+        succeededKeys.add(payload.key);
         saveToHistory(payload, true);
         const h = getHistory(); const idx = h.findIndex(e => e.key === payload.key);
         if (idx >= 0) { h[idx].synced = true; saveHistory(h); }
       }
     } catch { /* offline */ }
   }
-  if (succeeded > 0) { savePending(getPending().slice(succeeded)); showToast(`${succeeded} report(s) synced!`); if (succeeded === p.length) setDot('ok'); }
-  else showToast('Still offline — try again later');
+  if (succeededKeys.size > 0) {
+    savePending(getPending().filter(e => !succeededKeys.has(e.key)));
+    showToast(`${succeededKeys.size} report(s) synced!`);
+    if (succeededKeys.size === p.length) setDot('ok');
+  } else {
+    showToast('Still offline — try again later');
+  }
   renderHistory(); renderPendingBanner();
 }
 
@@ -875,24 +847,24 @@ function renderHistory() {
     const rate         = entry.rows.length ? Math.round((entry.rows.reduce((s, r) => s + (parseInt(r.score) || 0), 0) / (entry.rows.length * ACTIVITIES.length)) * 100) : 0;
     return `
     <div class="history-day">
-      <div class="history-day-header" onclick="toggleHistory(${i})">
+      <div class="history-day__header" onclick="toggleHistory(${i})">
         <div>
           <h3>${esc(entry.department)}</h3>
           <p>${fmt} · ${participated}/${entry.rows.length} participated · ${rate}% rate</p>
         </div>
-        <div class="h-badges">
-          <span class="h-badge ${entry.synced ? 'synced' : 'local'}">${entry.synced ? 'Synced' : 'Local only'}</span>
+        <div class="history-day__badges">
+          <span class="history-day__badge ${entry.synced ? 'history-day__badge--synced' : 'history-day__badge--local'}">${entry.synced ? 'Synced' : 'Local only'}</span>
           <span style="font-size:14px;color:var(--text-light);">›</span>
         </div>
       </div>
-      <div class="history-day-body" id="hbody-${i}">
-        <table class="h-mini-table">
+      <div class="history-day__body" id="hbody-${i}">
+        <table class="history-day__table">
           ${entry.rows.map(r => { const done = ACTIVITIES.filter(a => r[a]); return `<tr>
             <td>${esc(r.name)}</td>
             <td>${done.length ? done.map(a => ACT_ICONS[ACTIVITIES.indexOf(a)]).join(' ') : '❌ Absent'}</td>
             <td style="color:var(--text-muted);text-align:right;">${r.score}/6</td></tr>`; }).join('')}
         </table>
-        <div class="h-action-row">
+        <div class="history-day__actions">
           <button class="btn-secondary" onclick="reShareWhatsApp(${i})">Copy for WhatsApp</button>
           ${!entry.synced ? `<button class="btn-secondary" style="color:var(--green);border-color:rgba(22,101,52,0.3);" onclick="reSync(${i})">Sync to Sheets</button>` : ''}
         </div>
@@ -901,7 +873,7 @@ function renderHistory() {
   }).join('');
 }
 
-function toggleHistory(i) { document.getElementById('hbody-' + i).classList.toggle('open'); }
+function toggleHistory(i) { document.getElementById('hbody-' + i).classList.toggle('history-day__body--open'); }
 
 function reShareWhatsApp(i) {
   const entry = getHistory()[i];
@@ -934,37 +906,29 @@ function clearHistory() {
     'Use "Restore from Google Sheets" after re-registering to reload it.'
   )) return;
 
-  // Wipe all localStorage keys used by this app
   localStorage.removeItem('ccg_history');
   localStorage.removeItem('ccg_pending');
   localStorage.removeItem('ccg_auth');
   localStorage.removeItem('ccg_defaultDept');
   localStorage.removeItem('ccg_members'); // legacy key — safe to remove
 
-  // Reset all in-memory state
   members    = [];
   manualData = {};
 
-  // Clear all input fields so nothing persists on screen
   document.getElementById('m-dept').value    = '';
   document.getElementById('m-date').valueAsDate = new Date();
   document.getElementById('defaultDept').value = '';
 
-  // Hide all result / status UI
   document.getElementById('resultSection').style.display      = 'none';
   document.getElementById('historyLoadedBadge').style.display = 'none';
   const rs = document.getElementById('rosterStatus');
-  if (rs) rs.style.display = 'none';
+  if (rs) { rs.style.display = 'none'; rs.className = 'roster-status'; }
 
-  // Reset sync dot
   setDot('');
 
-  // Re-render all affected UI — everything should now appear empty
   renderManualGrid();
   renderSetupRoster();
   renderHistory();
-
-  // Show onboarding immediately — no waiting for user to figure out next step
   showOnboarding();
 }
 
@@ -972,7 +936,7 @@ function clearHistory() {
 function copyWhatsApp() {
   const dept  = getCurrentDept() || 'Department';
   const ddate = document.getElementById('m-date').value || today();
-  const rows  = members.map(m => ({ name: m, ...Object.fromEntries(ACTIVITIES.map(a => [a, manualData[m]?.[a] || false])) }));
+  const rows  = buildRows();
   if (!rows.length) return;
   const fmt          = new Date(ddate + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const total        = rows.length;
@@ -988,7 +952,7 @@ function copyWhatsApp() {
 function copyCSV() {
   const dept  = getCurrentDept() || 'Department';
   const ddate = document.getElementById('m-date').value || today();
-  const rows  = members.map(m => ({ name: m, ...Object.fromEntries(ACTIVITIES.map(a => [a, manualData[m]?.[a] || false])) }));
+  const rows  = buildRows();
   if (!rows.length) return;
   let csv = `Department,Date,Member,${ACTIVITIES.join(',')},Score\n`;
   rows.forEach(r => { const score = ACTIVITIES.filter(a => r[a]).length; csv += `${dept},${ddate},${r.name},${ACTIVITIES.map(a => r[a] ? 1 : 0).join(',')},${score}\n`; });

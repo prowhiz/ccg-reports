@@ -17,14 +17,14 @@
   <!-- ══════════════════════════════════════════════════════
        MODAL OVERLAY
   ══════════════════════════════════════════════════════ -->
-  <div id="modalOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; padding:20px;">
-    <div style="background:var(--white); border-radius:var(--radius); width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden;">
-      <div style="background:var(--navy); padding:16px 20px; display:flex; align-items:center; justify-content:space-between;">
-        <h2 id="modalTitle" style="font-family:'Playfair Display',serif; font-size:16px; color:var(--white); font-weight:500;"></h2>
-        <button onclick="closeModal()" style="background:none;border:none;color:rgba(255,255,255,0.6);font-size:20px;cursor:pointer;line-height:1;padding:0 4px;">✕</button>
+  <div id="modalOverlay" class="modal">
+    <div class="modal__dialog">
+      <div class="modal__header">
+        <h2 id="modalTitle" class="modal__title"></h2>
+        <button onclick="closeModal()" class="modal__close">✕</button>
       </div>
-      <div id="modalBody" style="padding:20px;"></div>
-      <div id="modalActions" style="padding:0 20px 20px; display:flex; gap:10px; justify-content:flex-end;"></div>
+      <div id="modalBody" class="modal__body"></div>
+      <div id="modalActions" class="modal__actions"></div>
     </div>
   </div>
 
@@ -57,6 +57,8 @@
     ══════════════════════════════════════════════════════ -->
     <div class="tab-pane active" id="pane-manual">
 
+    <div id="entryCards">
+
       <div class="card">
         <div class="card-label">Report details</div>
         <div class="field-row">
@@ -69,33 +71,33 @@
             <input id="m-date" type="date" onchange="onDateChange()" />
           </div>
         </div>
-        <div id="rosterStatus" style="display:none;"></div>
-        <div id="historyLoadedBadge" style="display:none; margin-top:10px; padding:8px 12px; background:var(--blue-bg); border:1px solid rgba(30,64,175,0.2); border-radius:var(--radius-sm); font-size:12px; color:var(--blue);">
+        <div id="rosterStatus" class="roster-status"></div>
+        <div id="historyLoadedBadge">
           📂 Loaded from history — editing this date's saved report
         </div>
       </div>
 
       <div class="card">
         <div class="card-label">Participation — tap to mark ✅</div>
-        <div id="noMembersHint" class="tip" style="display:none;">
+        <div id="noMembersHint" class="tip">
           Enter your department name above to get started.
         </div>
-        <div class="act-header" id="actHeader" style="display:none;">
-          <div class="act-header-name">Member</div>
-          <div class="act-header-cols" id="actHeaderCols"></div>
+        <div class="act-header" id="actHeader">
+          <div class="act-header__name">Member</div>
+          <div class="act-header__cols" id="actHeaderCols"></div>
         </div>
-        <div id="addMembersBtn" style="display:none; margin-bottom:10px;">
+        <div id="addMembersBtn">
           <button class="btn-secondary" style="width:100%; color:var(--navy); font-size:13px;" onclick="showAddMembersModal()">
             ➕ Add New Members
           </button>
         </div>
         <div class="entry-grid" id="entryGrid"></div>
-        <button class="btn-primary" id="generateBtn" onclick="generateFromManual()" style="display:none;">
-          <span class="btn-label">Generate Report</span>
+        <button class="btn-primary" id="generateBtn" onclick="generateFromManual()">
+          Generate Report
         </button>
       </div>
 
-      <div class="card" id="resultSection" style="display:none;">
+      <div class="card" id="resultSection">
         <div class="card-label">Result</div>
         <div class="summary-bar">
           <div class="stat"><div class="stat-num" id="m-statMembers">—</div><div class="stat-lbl">Members</div></div>
@@ -107,13 +109,13 @@
           <p id="m-resultSub"></p>
         </div>
         <div class="tbl-scroll"><table id="m-resultTable"></table></div>
-        <div class="sync-strip idle" id="m-syncStrip">☁️ Ready to sync to Google Sheets</div>
+        <div class="sync-strip sync-strip--idle" id="m-syncStrip">☁️ Ready to sync to Google Sheets</div>
         <div class="action-row">
           <button class="btn-secondary" onclick="copyWhatsApp()">Copy for WhatsApp</button>
           <button class="btn-secondary" onclick="copyCSV()">Copy CSV</button>
           <button class="btn-primary btn-green" id="m-syncBtn" onclick="syncToSheets()" style="margin-top:10px;">
             <div class="spinner"></div>
-            <span class="btn-label">📤 Save to Google Sheets</span>
+            📤 Save to Google Sheets
           </button>
         </div>
         <div style="margin-top:8px; text-align:right;">
@@ -121,6 +123,7 @@
         </div>
       </div>
 
+    </div><!-- /entryCards -->
     </div><!-- /pane-manual -->
 
     <!-- ══════════════════════════════════════════════════════
@@ -140,7 +143,7 @@
         </p>
         <button class="btn-primary btn-green" id="restoreHistoryBtn" onclick="restoreHistoryFromSheets()">
           <div class="spinner"></div>
-          <span class="btn-label">☁️ Restore history from Google Sheets</span>
+          ☁️ Restore history from Google Sheets
         </button>
       </div>
 
@@ -181,14 +184,9 @@
           Members are loaded automatically from Google Sheets when you type a registered department name.
         </p>
         <div class="tip" style="margin-bottom:12px;">
-          ⚠️ Only add members manually as an offline fallback. Names must match the <strong>_Members</strong> sheet exactly to avoid broken history.
+          ℹ️ To add members, use the <strong>➕ Add New Members</strong> button in the Entry tab. Changes are saved permanently to Google Sheets.
         </div>
         <div class="roster-list" id="rosterList"></div>
-        <div class="add-member-row">
-          <input id="newMemberInput" type="text" placeholder="Exact name from _Members sheet"
-                 maxlength="50" onkeydown="if(event.key==='Enter') addMemberLocal()" />
-          <button class="btn-add" onclick="addMemberLocal()">Add</button>
-        </div>
       </div>
 
       <div class="card">
